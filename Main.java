@@ -1,26 +1,27 @@
+package org.example;
+
 import java.util.Scanner;
 
 public class Main {
-    public  static void main(String[] args) {
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        Account account = new Account();
+        LogIn logIn = new LogIn();
 
-        System.out.println("Welcome to Kaya Bank!");
-        System.out.println("Please make a choice");
-        System.out.println("1. Create an account | 2. Login | 3. Exit");
-        System.out.print("Enter your choice: ");
-        int choice = sc.nextInt();
+        while (true) {
+            System.out.println("Welcome to Aet Bank!");
+            System.out.println("Here is the menu");
+            System.out.println("1. Create Account");
+            System.out.println("2. Sign In");
+            System.out.println("3. Exit");
+            System.out.print("Please select an option: ");
+            int choice = sc.nextInt();
 
-        switch (choice) {
-            case 1: account.userRegistration(); break;
-            case 2: account.userLogin(); break;
-            case 3:
-                System.out.println("Thank you for using Kaya Bank. Goodbye!");
-                sc.close();
-                return;
-            default:
-                System.out.println("Invalid choice. Please try again.");
-                break;
+            switch (choice) {
+                case 1: logIn.signUp(); break;
+                case 2: logIn.signIn(); break;
+                case 3: sc.close(); System.exit(0); break;
+                default: System.out.println("Invalid choice. Please try again."); break;
+            }
         }
     }
 }
