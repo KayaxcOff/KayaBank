@@ -1,55 +1,102 @@
-import java.util.Scanner;
+package org.example;
+
+import java.util.*;
+import java.nio.file.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class BankTransactions {
-    public double transactions() {
-        Scanner scan = new Scanner(System.in);
+    private String FILE_NAME = "users_data.json";
+    private User user;
+    private String username;
 
-        double resultMoney = 0.0;
-        boolean loop = true;
-        while (loop) {
-            System.out.println("Welcome to Bank Transactions");
-            System.out.println("Please make a choice:");
-            System.out.println("1. Withdraw Money | 2. Deposit Money | 3. Exit");
-            int choice = scan.nextInt();
+    public BankTransactions(User user) {
+        this.user = user;
+        this.username = user.getUsername();
+    }
 
-            if( choice == 1) {
-                System.out.print("Enter the amount to withdraw: ");
-                double moneyWithdraw = scan.nextDouble();
-                resultMoney = withdraw(moneyWithdraw);
-            } else if(choice == 2) {
-                System.out.print("Enter the amount to deposit: ");
-                double moneyDeposit = scan.nextDouble();
-                resultMoney = deposit(moneyDeposit);
-            } else if(choice == 3) {
-                System.out.println("Thank you for using Kaya Bank. Goodbye!");
-                loop = false;
-            } else {
-                System.out.println("Invalid choice. Please try again.");
+    public int deposit() {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Hello " + username + ", welcome to Aet Bank!");
+        System.out.print("Please enter the amount you want to deposit: ");
+        int amount = sc.nextInt();
+
+        if (amount <= 0) {
+            System.out.println("Invalid amount. Please enter a positive number.");
+            return deposit();
+        } else {
+            int newBalance = user.getBalance() + amount;
+            user.setBalance(newBalance);
+            System.out.println("You have successfully deposited " + amount + ". Your new balance is: " + user.getBalance());
+        }
+        return user.getBalance();
+    }
+
+    public int withdraw() {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Hello " + username + ", welcome to Aet Bank!");
+
+        if (user.getBalance() <= 0) {
+            System.out.println("Your balance is zero. You cannot withdraw money.");
+            return 0;
+        }
+
+        System.out.print("Please enter the amount you want to withdraw: ");
+        int amount = sc.nextInt();
+
+        if(amount <= 0) {
+            System.out.println("Invalid amount. Please enter a positive number.");
+            return withdraw();
+        } else if(amount > user.getBalance()) {
+            System.out.println("Insufficient balance. You cannot withdraw more than your current balance of " + user.getBalance() + ".");
+            return withdraw();
+        } else {
+            int newBalance = user.getBalance() - amount;
+            user.setBalance(newBalance);
+            System.out.println("You have successfully withdrawn " + amount + ". Your new balance is: " + user.getBalance());
+        }
+        return user.getBalance();
+    }
+
+    public void displayInfo() {
+        System.out.println("User Information:");
+        if (username == null || username.isEmpty()) {
+            System.out.println("Username: Not set");
+        } else {
+            System.out.println("Username: " + username);
+            System.out.println("Balance: " + user.getBalance());
+        }
+    }
+
+    public void updateInfo() {
+        Gson gson = new Gson();
+        try {
+            String data = new String(Files.readAllBytes(Paths.get(FILE_NAME)));
+            List<User> users = gson.fromJson(data, new TypeToken<List<User>>(){}.getType());
+            if(users == null) users = new ArrayList<>();
+
+            boolean found = false;
+            for(int i = 0; i < users.size(); i++) {
+                if(users.get(i).getUsername().equals(this.username)) {
+                    User updatedUser = new User(this.username, users.get(i).getPassword(), this.user.getBalance());
+                    users.set(i, updatedUser);
+                    found = true;
+                    break;
+                }
             }
-        }
-        return resultMoney;
-    }
 
-    public double withdraw(double moneyWithdraw) {
-        MainPage mainPage = new MainPage();
-        int balance = mainPage.accountInfo();
+            if(!found) {
+                System.out.println("Warning: User not found in file during update.");
+                return;
+            }
 
-        if(moneyWithdraw < 0 || moneyWithdraw > balance) {
-            System.out.println("You cannot withdraw a negative amount or more than your balance.");
-            return 0;
-        } else {
-            System.out.println("You have successfully withdrawn: " + moneyWithdraw);
-            return moneyWithdraw;
-        }
-    }
-
-    public double deposit(double moneyDeposit) {
-        if(moneyDeposit < 0) {
-            System.out.println("You cannot deposit a negative amount.");
-            return 0;
-        } else {
-            System.out.println("You have successfully deposited: " + moneyDeposit);
-            return moneyDeposit;
+            String updatedData = gson.toJson(users);
+            Files.write(Paths.get(FILE_NAME), updatedData.getBytes(),
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (Exception e) {
+            System.out.println("Error updating user information: " + e.getMessage());
         }
     }
 }
